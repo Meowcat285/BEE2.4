@@ -9,6 +9,7 @@ from tooltip import add_tooltip
 import sound
 import utils
 import contextWin
+import tk_tools
 
 UI = {}
 PLAY_SOUND = BooleanVar(value=True, name='OPT_play_sounds')
@@ -28,7 +29,7 @@ def reset_all_win():
 
 win = Toplevel(TK_ROOT)
 win.transient(master=TK_ROOT)
-win.iconbitmap('../BEE2.ico')
+tk_tools.set_icon(win)
 win.title('BEE2 Options')
 win.withdraw()
 

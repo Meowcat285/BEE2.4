@@ -16,10 +16,19 @@ import utils
 # object.
 TK_ROOT = tk.Tk()
 
+ICO_LOC = '../BEE2.ico'
+
 if utils.WIN:
     # Ensure everything has our icon (including dialogs)
-    TK_ROOT.wm_iconbitmap(default='../BEE2.ico')
+    TK_ROOT.wm_iconbitmap(default=ICO_LOC)
 TK_ROOT.withdraw()  # Hide the window until everything is loaded.
+
+
+def set_icon(win: tk.Toplevel):
+    """Set the icon of a window."""
+    win.iconbitmap(ICO_LOC)
+
+set_icon(TK_ROOT)
 
 
 def event_cancel(*args, **kwargs):

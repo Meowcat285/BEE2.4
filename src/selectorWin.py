@@ -229,7 +229,7 @@ class selWin:
         self.win.title("BEE2 - " + title)
         self.win.transient(master=tk)
         self.win.resizable(True, True)
-        self.win.iconbitmap('../BEE2.ico')
+        tk_tools.set_icon(self.win)
         self.win.protocol("WM_DELETE_WINDOW", self.exit)
         self.win.bind("<Escape>", self.exit)
 

@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
+import tk_tools
 import utils
 import sound as snd
 
@@ -73,7 +74,7 @@ class SubPane(Toplevel):
         self.transient(master=parent)
         self.resizable(resize_x, resize_y)
         self.title(title)
-        self.iconbitmap('../BEE2.ico')
+        tk_tools.set_icon(self)
 
         self.protocol("WM_DELETE_WINDOW", self.hide_win)
         parent.bind('<Configure>', self.follow_main, add='+')

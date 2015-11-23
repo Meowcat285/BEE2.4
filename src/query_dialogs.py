@@ -1,10 +1,11 @@
 from tkinter import simpledialog
+import tk_tools
 
 
 class StringDialog(simpledialog._QueryString):
     def body(self, master):
         super().body(master)
-        self.iconbitmap('../BEE2.ico')
+        tk_tools.set_icon(self)
 
 
 def ask_string(title, prompt, **kargs):
