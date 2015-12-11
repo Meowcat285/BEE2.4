@@ -293,7 +293,7 @@ IGNORED_FACES = set()
 IGNORED_OVERLAYS = set()
 
 TO_PACK = set()  # The packlists we want to pack.
-PACK_FILES = set()  # Raw files we force pack
+PACK_FILES = set()  # Raw files we force pack.
 
 ##################
 # UTIL functions #
@@ -464,7 +464,8 @@ def load_settings():
             'skybox': pit['sky_inst', ''],
             'skybox_ceil': pit['sky_inst_ceil', ''],
             'targ': pit['targ_inst', ''],
-            'blend_light': pit['blend_light', '']
+            'blend_light': pit['blend_light', ''],
+            'pitfall_logic': pit['pitfall_logic', ''],
         }
         pit_inst = settings['pit']['inst'] = {}
         for inst_type in (
@@ -1297,6 +1298,10 @@ def make_bottomless_pit(solids, max_height):
     # Controlled by the style, not skybox!
     blend_light = get_opt('pit_blend_light')
 
+    pitfall_logic = settings['pit']['pitfall_logic']
+
+    pit_locs = set()
+
     for solid, wat_face in solids:
         wat_face.mat = tex_sky
         for vec in wat_face.planes:
@@ -1389,6 +1394,8 @@ def make_bottomless_pit(solids, max_height):
                     if side is not None:
                         side[i] = origin.z - 13
 
+                pit_locs.add(trig['origin'])
+
                 if blend_light:
                     # Generate dim lights at the skybox location,
                     # to blend the lighting together.
@@ -1421,6 +1428,72 @@ def make_bottomless_pit(solids, max_height):
                 for plane in side.planes:
                     if plane.z > origin.z:
                         plane.z -= 16
+    if pitfall_logic:
+        pitfall_trig = None
+
+        # Swap trigger_hurts with a normal trigger, which fires commands
+        # restricting player movement
+        for trig in VMF.by_class['trigger_hurt']:  # type: VLib.Entity
+            if trig['origin'] not in pit_locs:
+                continue  # Ignore laserfield triggers, etc
+
+            if pitfall_trig:
+                # Merge the entities together
+                pitfall_trig.solids.extend(trig.solids)
+                VMF.remove_ent(trig)
+                continue
+            else:
+                pitfall_trig = trig
+
+            # Remove unused keyvalues
+            del trig['damage'], trig['damagecap'], trig['damagecap']
+            del trig['damagemodel'], trig['damagetype'], trig['nodmgforce']
+
+            if GAME_MODE == 'COOP':
+                trig['classname'] = 'trigger_playerteam'
+                trig.outputs += [
+                    VLib.Output(
+                        'OnStartTouchBluePlayer',
+                        '@pitfall',
+                        'RunScriptCode',
+                        'fall_blue()',
+                    ),
+                    VLib.Output(
+                        'OnStartTouchOrangePlayer',
+                        '@pitfall',
+                        'RunScriptCode',
+                        'fall_oran()',
+                    ),
+                ]
+            else:
+                trig['classname'] = 'trigger_multiple'
+                trig.outputs.append(
+                    VLib.Output(
+                        'OnStartTouch',
+                        '@pitfall',
+                        'RunScriptCode',
+                        'fall_sp()',
+                    ),
+                )
+
+        pitfall_inst = VMF.create_ent(
+            classname='func_instance',
+            file=pitfall_logic,
+            targetname='skybox_pitfall',
+            angles='0 0 0',
+            origin='{!s} {!s} 0'.format(
+                tele_off_x - 64,
+                tele_off_y - 64,
+            ),
+        )
+        pitfall_inst.fixup['$tele_ref'] = tele_ref
+        pitfall_inst.fixup['$tele_dest'] = tele_dest
+
+        if GAME_MODE == 'SP':
+            # Add an instance specific to SP
+            pitfall_mode = pitfall_inst.copy()
+            VMF.add_ent(pitfall_mode)
+            conditions.add_suffix(pitfall_mode, '_' + GAME_MODE.lower())
 
     instances = settings['pit']['inst']
 
@@ -1632,13 +1705,6 @@ def collapse_goo_trig():
 
     if hurt_trig is not None:
         hurt_trig['damage'] = '99999'
-        hurt_trig.outputs.append(
-            VLib.Output(
-                'OnHurtPlayer',
-                '@goo_fade',
-                'Fade',
-            ),
-        )
 
     utils.con_log('Done!')
 
