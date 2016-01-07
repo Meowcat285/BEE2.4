@@ -324,6 +324,9 @@ class Game:
         editoritems, vbsp_config = style.export()
         export_screen.step('EXP')
 
+        # Generate our config directory.
+        os.makedirs(self.abs_path('bin/bee2/'), exist_ok=True)
+
         # Export each object type.
         for obj_name, obj_data in packageLoader.OBJ_TYPES.items():
             if obj_name == 'Style':
@@ -406,7 +409,6 @@ class Game:
         export_screen.step('EXP')
 
         LOGGER.info('Writing VBSP Config!')
-        os.makedirs(self.abs_path('bin/bee2/'), exist_ok=True)
         with open(self.abs_path('bin/bee2/vbsp_config.cfg'), 'w') as vbsp_file:
             for line in vbsp_config.export():
                 vbsp_file.write(line)
