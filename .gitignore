@@ -50,6 +50,8 @@ Icon
 # Compiled application output
 build_BEE2/
 compiler/
+_property_parser.c
+_property_parser.pyd
 
 # Package source is in BEE2-items/
 packages/

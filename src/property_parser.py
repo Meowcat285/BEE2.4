@@ -1,9 +1,10 @@
 import utils
 import re
+import sys
 
 from typing import (
     Optional, Union, Any,
-    Dict, List, Tuple, Iterator,
+    List, Tuple, Iterator,
 )
 
 __all__ = ['KeyValError', 'NoKeyError', 'Property']
@@ -337,6 +338,11 @@ class Property:
                 line=None,
             )
         return open_properties[0]
+
+    try:
+        from _property_parser import property_parse as parse
+    except ImportError:
+        pass
 
     def find_all(self, *keys) -> Iterator['Property']:
         """Search through a tree to obtain all properties that match a particular path.
